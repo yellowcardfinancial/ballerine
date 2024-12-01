@@ -23,7 +23,7 @@ services:
       - ballerine-workflow-service
     restart: on-failure
     environment:
-      VITE_API_URL: 'http://${DOMAIN_NAME:-localhost:3000}/api/v1/'
+      VITE_API_URL: 'http://localhost:3000/api/v1/'
       VITE_KYB_DEFINITION_ID: 'kyb_parent_kyc_session_example'
   ballerine-workflow-service:
     container_name: workflow-service
@@ -50,10 +50,10 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       SESSION_SECRET: ${SESSION_SECRET}
-      BACKOFFICE_CORS_ORIGIN: http://${DOMAIN_NAME:-localhost}:${BACKOFFICE_PORT}
-      WORKFLOW_DASHBOARD_CORS_ORIGIN: http://${DOMAIN_NAME:-localhost}:${WORKFLOW_DASHBOARD_PORT}
+      BACKOFFICE_CORS_ORIGIN: http://localhost:5137
+      WORKFLOW_DASHBOARD_CORS_ORIGIN: http://localhost:5200
       PORT: ${WORKFLOW_SVC_PORT}
-      KYB_EXAMPLE_CORS_ORIGIN: http://${DOMAIN_NAME:-localhost}:${KYB_APP_PORT}
+      KYB_EXAMPLE_CORS_ORIGIN: http://localhost:5201
       APP_API_URL: https://alon.ballerine.dev
       EMAIL_API_TOKEN: ''
       EMAIL_API_URL: https://api.sendgrid.com/v3/mail/send
@@ -98,5 +98,6 @@ services:
       timeout: 45s
       interval: 10s
       retries: 10
+    restart: on-failure
 volumes:
   postgres15: ~
