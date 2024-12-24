@@ -1,12 +1,12 @@
 name: Under Testing - Build and Deploy Dashboard Application
 
 on:
-  push:
-    paths:
-      # Run this pipeline only if there are changes in specified path
-      - 'apps/workflows-dashboard/**'
-    branches:
-    - "dev"
+  # push:
+  #   paths:
+  #     # Run this pipeline only if there are changes in specified path
+  #     - 'apps/workflows-dashboard/**'
+  #   branches:
+  #   - "dev"
   workflow_dispatch:
     inputs:
       environment:

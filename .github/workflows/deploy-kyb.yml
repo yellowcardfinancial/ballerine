@@ -1,12 +1,12 @@
 name: Under Testing - Build and Deploy KYB Application
 
 on:
-  push:
-    paths:
-      # Run this pipeline only if there are changes in specified path
-      - 'apps/kyb-app/**'
-    branches:
-    - "dev"
+  # push:
+  #   paths:
+  #     # Run this pipeline only if there are changes in specified path
+  #     - 'apps/kyb-app/**'
+  #   branches:
+  #   - "dev"
   workflow_dispatch:
     inputs:
       environment:

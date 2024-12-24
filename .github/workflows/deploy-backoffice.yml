@@ -1,12 +1,12 @@
 name: Under Testing - Build and Deploy Backoffice Application
 
 on:
-  push:
-    paths:
-      # Run this pipeline only if there are changes in specified path
-      - 'apps/backoffice-v2/**'
-    branches:
-    - "dev"
+  # push:
+  #   paths:
+  #     # Run this pipeline only if there are changes in specified path
+  #     - 'apps/backoffice-v2/**'
+  #   branches:
+  #   - "dev"
   workflow_dispatch:
     inputs:
       environment:
