@@ -32,10 +32,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.event_name == 'push' && github.ref_name || inputs.environment }}
     steps:
-      # Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v3
-
       # Trigger a webhook
       - name: Trigger Build webhook
         run: |
