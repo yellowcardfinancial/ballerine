@@ -1,4 +1,4 @@
-name: Build and Deploy KYB Application
+name: Under Testing - Build and Deploy KYB Application
 
 on:
   push:
