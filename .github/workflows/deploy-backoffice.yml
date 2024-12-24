@@ -59,3 +59,21 @@ jobs:
           slack-message: "Back-office Build initialized in ${{ github.event_name == 'push' && github.ref_name || inputs.environment }}."
         env:
           SLACK_BOT_TOKEN: ${{ secrets.ARGO_SLACK_BOT_TOKEN }}
+
+  on-failure:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: failure()
+    environment: ${{ github.event_name == 'push' && github.ref_name || inputs.environment }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Send alert to Slack channel
+        id: slack
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          channel-id: '${{ secrets.ARGO_SLACK_CHANNEL_ID }}'
+          slack-message: "Backoffice Build job failed in ${{ github.event_name == 'push' && github.ref_name || inputs.environment }}."
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.ARGO_SLACK_BOT_TOKEN }}
