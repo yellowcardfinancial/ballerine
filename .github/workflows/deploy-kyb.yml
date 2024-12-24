@@ -39,7 +39,14 @@ jobs:
       # Trigger a webhook
       - name: Trigger Build webhook
         run: |
-          curl -X POST -d {} "${{ secrets.KYB_WEBHOOK_URL }}" -H "Content-Type:application/json"
+          # curl -X POST -d {} "${{ secrets.KYB_WEBHOOK_URL }}" -H "Content-Type:application/json"
+          response=$(curl -s -w "\n%{http_code}" -X POST -d {} "${{ secrets.KYB_WEBHOOK_URL }}" -H "Content-Type:application/json")
+          status_code=$(echo "$response" | tail -n 1)
+          if [ "$status_code" -lt 200 ] || [ "$status_code" -ge 300 ]; then
+            echo "Error: Webhook request failed with status $status_code"
+            echo "Response: $(echo "$response" | head -n -1)"
+            exit 1
+          fi
 
   send-to-slack:
     runs-on: ubuntu-latest
