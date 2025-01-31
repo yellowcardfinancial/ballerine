@@ -39,6 +39,7 @@ describe('useValidate', () => {
     vi.clearAllMocks();
     vi.useRealTimers();
     mockValidate.mockReturnValue(mockValidationErrors);
+    // @ts-expect-error
     mockDebounce.mockImplementation(fn => mockDebouncedValidate);
   });
 

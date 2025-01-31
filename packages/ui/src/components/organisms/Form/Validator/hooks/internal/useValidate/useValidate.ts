@@ -63,7 +63,7 @@ export const useValidate = (
     if (validateOnChange && validationDelay === undefined) {
       validateSyncCallback(context, schema);
     }
-  }, [validateOnChange, validateSyncCallback, context, schema]);
+  }, [validateOnChange, validateSyncCallback, context, schema, validationDelay]);
 
   useEffect(() => {
     if (validateOnChange && validationDelay === undefined) {
@@ -73,7 +73,7 @@ export const useValidate = (
     if (validateOnChange) {
       debouncedValidate(context, schema);
     }
-  }, [validateOnChange, context, schema, debouncedValidate]);
+  }, [validateOnChange, context, schema, debouncedValidate, validationDelay]);
 
   return {
     errors: validationErrors,
