@@ -100,6 +100,7 @@ export const useDocumentUpload = (
               element,
               result,
             );
+            debugger;
 
             set(context, element.valueDestination, updatedDocuments);
 

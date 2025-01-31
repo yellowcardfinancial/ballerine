@@ -29,7 +29,9 @@ export const SubmitButton: TDynamicFormElement<string, ISubmitButtonParams> = ({
   const { disableWhenFormIsInvalid = false, text = 'Submit' } = element.params || {};
 
   const disabled = useMemo(() => {
-    if (disableWhenFormIsInvalid && !isValid) return true;
+    if (disableWhenFormIsInvalid && !isValid) {
+      return true;
+    }
 
     return _disabled;
   }, [disableWhenFormIsInvalid, isValid, _disabled]);
@@ -52,8 +54,7 @@ export const SubmitButton: TDynamicFormElement<string, ISubmitButtonParams> = ({
 
     fieldHelpers.setValues(updatedContext);
 
-    submit();
-
+    submit(updatedContext);
     sendEvent('onSubmit');
   }, [submit, isValid, touchAllFields, runTasks, sendEvent, errors, onClick, values, fieldHelpers]);
 
