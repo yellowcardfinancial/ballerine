@@ -21,7 +21,7 @@ export const validate = <
   schema: Array<IValidationSchema<TValidatorTypeExtends>>,
   params: IValidateParams = {},
 ): IValidationError[] => {
-  const { abortEarly = false } = params;
+  const { abortEarly = false, abortAfterFirstError = false } = params;
 
   const validationErrors: IValidationError[] = [];
 
@@ -62,6 +62,12 @@ export const validate = <
 
           validationErrors.push(error);
 
+          // Validation of current schema will be stopped if at least one error is found
+          if (abortAfterFirstError) {
+            continue;
+          }
+
+          // Validation of all schema will be stopped if at least one error is found
           if (abortEarly) {
             throw validationErrors;
           }
