@@ -1,30 +1,30 @@
 #!/usr/bin/env sh
 
-if [[ -z "$VITE_DOMAIN" ]]
+if [[ -n "$VITE_DOMAIN" ]]
 then
-    VITE_DOMAIN="http://localhost:3000"
+    VITE_API_URL="$VITE_DOMAIN/api/v1/"
 fi
 
-if [[ -z "$MODE" ]]
+if [[ -n "$MODE" ]]
 then
-    MODE="development"
+	MODE="$MODE"
 fi
 
-if [[ -z "$VITE_IMAGE_LOGO_URL" ]]
+if [[ -n "$VITE_IMAGE_LOGO_URL" ]]
 then
-    VITE_IMAGE_LOGO_URL=
+    VITE_IMAGE_LOGO_URL="$VITE_IMAGE_LOGO_URL"
 fi
 
 
-if [[ -z "$VITE_ENVIRONMENT_NAME" ]]
+if [[ -n "$VITE_ENVIRONMENT_NAME" ]]
 then
-    VITE_ENVIRONMENT_NAME=local
+    VITE_ENVIRONMENT_NAME="$VITE_ENVIRONMENT_NAME"
 fi
 
 
 cat << EOF > /usr/share/nginx/html/config.js
 globalThis.env = {
-  VITE_API_URL: "$VITE_DOMAIN/api/v1/",
+  VITE_API_URL: "$VITE_API_URL",
   VITE_ENVIRONMENT_NAME: "$VITE_ENVIRONMENT_NAME",
   MODE: "$MODE",
   VITE_IMAGE_LOGO_URL: "$VITE_IMAGE_LOGO_URL",
