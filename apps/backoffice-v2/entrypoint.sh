@@ -1,44 +1,43 @@
 #!/usr/bin/env sh
 
-if [[ -z "$VITE_DOMAIN" ]]
+if [[ -n "$VITE_DOMAIN" ]]
 then
-    VITE_DOMAIN="http://localhost:3000"
+    VITE_API_URL="$VITE_DOMAIN/api/v1/internal"
 fi
 
-if [[ -z "$VITE_API_KEY" ]]
+if [[ -n "$VITE_API_KEY" ]]
 then
-    VITE_API_KEY="secret"
+    VITE_API_KEY="$VITE_API_KEY"
 fi
 
-if [[ -z "$VITE_AUTH_ENABLED" ]]
+if [[ -n "$VITE_AUTH_ENABLED" ]]
 then
-    VITE_AUTH_ENABLED=true
+    VITE_AUTH_ENABLED="$VITE_AUTH_ENABLED"
 fi
 
-
-if [[ -z "$VITE_MOCK_SERVER" ]]
+if [[ -n "$VITE_MOCK_SERVER" ]]
 then
-    VITE_MOCK_SERVER=false
+    VITE_MOCK_SERVER="$VITE_MOCK_SERVER"
 fi
 
-if [[ -z "$VITE_POLLING_INTERVAL" ]]
+if [[ -n "$VITE_POLLING_INTERVAL" ]]
 then
-    VITE_POLLING_INTERVAL=10
+    VITE_POLLING_INTERVAL="$VITE_POLLING_INTERVAL"
 fi
 
-if [[ -z "$VITE_ASSIGNMENT_POLLING_INTERVAL" ]]
+if [[ -n "$VITE_ASSIGNMENT_POLLING_INTERVAL" ]]
 then
-    VITE_ASSIGNMENT_POLLING_INTERVAL=5
+    VITE_ASSIGNMENT_POLLING_INTERVAL="$VITE_ASSIGNMENT_POLLING_INTERVAL"
 fi
 
-if [[ -z "$VITE_FETCH_SIGNED_URL" ]]
+if [[ -n "$VITE_FETCH_SIGNED_URL" ]]
 then
-    VITE_FETCH_SIGNED_URL=false
+    VITE_FETCH_SIGNED_URL="$VITE_FETCH_SIGNED_URL"
 fi
 
 cat << EOF > /usr/share/nginx/html/config.js
 globalThis.env = {
-  VITE_API_URL: "$VITE_DOMAIN/api/v1/internal",
+  VITE_API_URL: "$VITE_API_URL",
   VITE_API_KEY: "$VITE_API_KEY",
   VITE_AUTH_ENABLED: "$VITE_AUTH_ENABLED",
   VITE_MOCK_SERVER: "$VITE_MOCK_SERVER",

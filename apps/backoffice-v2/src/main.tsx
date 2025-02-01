@@ -54,8 +54,3 @@ void prepare().then(() => {
     );
   }
 });
-
-//@ts-ignore
-globalThis.env = globalThis.env || {
-  API_URL: import.meta.env.VITE_API_URL,
-};
