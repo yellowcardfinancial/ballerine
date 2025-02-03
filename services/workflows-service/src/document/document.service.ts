@@ -10,6 +10,9 @@ import { Static } from '@sinclair/typebox';
 import { CreateDocumentSchema } from './dtos/document.dto';
 import { CreateDocumentFileSchema } from '@/document-file/dtos/document-file.dto';
 import { WorkflowService } from '@/workflow/workflow.service';
+import { UiDefinitionService } from '@/ui-definition/ui-definition.service';
+import { isObject } from '@ballerine/common';
+import { RawDocumentFieldSchema } from './types';
 
 @Injectable()
 export class DocumentService {
@@ -19,6 +22,7 @@ export class DocumentService {
     protected readonly fileService: FileService,
     protected readonly workflowService: WorkflowService,
     protected readonly storageService: StorageService,
+    protected readonly uiDefinitionService: UiDefinitionService,
   ) {}
 
   async create(
@@ -217,5 +221,70 @@ export class DocumentService {
         };
       }) ?? [],
     );
+  }
+
+  async getDocumentsByWorkflowId(
+    workflowRuntimeId: string,
+    projectId: TProjectId,
+    workflowDefinitionId: string,
+  ) {
+    const uiDefinition = await this.uiDefinitionService.getByWorkflowDefinitionId(
+      workflowDefinitionId,
+      'collection_flow',
+      [projectId],
+    );
+
+    console.log('uiDefinition', uiDefinition);
+
+    if (!isObject(uiDefinition.uiSchema)) {
+      return [];
+    }
+
+    const uiSchema = uiDefinition.uiSchema as { elements: any[] };
+
+    const documentFields = this.findDocumentFields(uiSchema);
+
+    return documentFields;
+
+    const workflowContext = await this.workflowService.getWorkflowRuntimeDataById(
+      workflowRuntimeId,
+      {
+        select: {
+          context: true,
+        },
+      },
+      [projectId],
+    );
+
+    return workflowContext;
+
+    // return documents;
+  }
+
+  private findDocumentFields(node: any): Array<typeof RawDocumentFieldSchema> {
+    if (!node || typeof node !== 'object') {
+      return [];
+    }
+
+    const results: Array<typeof RawDocumentFieldSchema> = [];
+    const stack: any[] = [node];
+
+    while (stack.length) {
+      const current = stack.pop();
+
+      if (current?.element === 'documentfield') {
+        results.push(current as typeof RawDocumentFieldSchema);
+      }
+
+      if (Array.isArray(current?.elements)) {
+        stack.push(...current.elements);
+      }
+
+      if (Array.isArray(current?.children)) {
+        stack.push(...current.children);
+      }
+    }
+
+    return results;
   }
 }

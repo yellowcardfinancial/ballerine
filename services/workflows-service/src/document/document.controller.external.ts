@@ -11,7 +11,13 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiResponse,
+  ApiOkResponse,
+  ApiForbiddenResponse,
+} from '@nestjs/swagger';
 import { DocumentService } from './document.service';
 import {
   CreateDocumentSchema,
@@ -27,6 +33,8 @@ import { getDiskStorage } from '@/storage/get-file-storage-manager';
 import { FILE_MAX_SIZE_IN_BYTE, FILE_SIZE_EXCEEDED_MSG, fileFilter } from '@/storage/file-filter';
 import { DocumentFileJsonSchema } from '@/document-file/dtos/document-file.dto';
 import z from 'zod';
+import type { TProjectId } from '@/types';
+import { DocumentTrackerModel } from '@/document/document.model';
 
 @ApiBearerAuth()
 @ApiTags('Documents')
@@ -185,5 +193,16 @@ export class DocumentControllerExternal {
     @CurrentProject() projectId: string,
   ) {
     return await this.documentService.deleteByIds(ids, [projectId]);
+  }
+
+  @Get('workflow/:workflowId/definition/:definitionId')
+  @ApiForbiddenResponse()
+  @ApiOkResponse({ type: Array<DocumentTrackerModel> })
+  async getDocumentsByWorkflowId(
+    @Param('workflowId') workflowId: string,
+    @Param('definitionId') definitionId: string,
+    @CurrentProject() projectId: TProjectId,
+  ) {
+    return await this.documentService.getDocumentsByWorkflowId(workflowId, projectId, definitionId);
   }
 }
