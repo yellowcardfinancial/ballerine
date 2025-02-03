@@ -33,13 +33,15 @@ export const useKybRegistryInfoBlock = ({ pluginsOutput, workflow }) => {
       >;
     }
 
-    if (Object.keys(pluginsOutput?.bankAccountVerification?.clientResponsePayload ?? {}).length) {
+    if (
+      Object.keys(pluginsOutput?.bankAccountVerification?.data.clientResponsePayload ?? {}).length
+    ) {
       const data = {
-        ...pluginsOutput?.bankAccountVerification?.responseHeader.overallResponse,
+        ...pluginsOutput.bankAccountVerification.data.responseHeader.overallResponse,
         decisionElements:
-          pluginsOutput?.bankAccountVerification?.clientResponsePayload.decisionElements,
+          pluginsOutput.bankAccountVerification.data.clientResponsePayload.decisionElements,
         orchestrationDecisions:
-          pluginsOutput?.bankAccountVerification?.clientResponsePayload.orchestrationDecisions,
+          pluginsOutput.bankAccountVerification.data.clientResponsePayload.orchestrationDecisions,
       };
 
       return {
@@ -48,11 +50,7 @@ export const useKybRegistryInfoBlock = ({ pluginsOutput, workflow }) => {
         hideSeparator: true,
         value: {
           data: Object.entries(data)
-            ?.filter(([property]) => {
-              console.log(property);
-
-              return !['tenantID', 'clientReferenceId'].includes(property);
-            })
+            ?.filter(([property]) => !['tenantID', 'clientReferenceId'].includes(property))
             .map(([title, value]) => ({
               title,
               value,

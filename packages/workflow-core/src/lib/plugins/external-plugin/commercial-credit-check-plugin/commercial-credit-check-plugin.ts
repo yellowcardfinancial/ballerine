@@ -9,85 +9,38 @@ import { validateEnv } from '../shared/validate-env';
 import { IApiPluginParams, PluginPayloadProperty } from '../types';
 import { getPayloadPropertiesValue } from '../shared/get-payload-properties-value';
 
-const BankAccountVerificationPluginPayloadSchema = z.object({
+const CommercialCreditCheckPluginPayloadSchema = z.object({
   clientId: z.string().min(1),
   vendor: z.enum(['experian']),
-  address: z.object({
-    streetNumber: z.string().min(1),
-    street: z.string().min(1),
-    city: z.string().min(1),
-    postcode: z.string().min(1),
-  }),
-  bankAccountDetails: z.object({
-    holder: z.union([
-      z.union([
-        z.object({
-          bankAccountName: z.string().min(1),
-          companyRegistrationNumber: z.string().min(1),
-        }),
-        z.object({
-          bankAccountName: z.string().min(1),
-          registeredCharityNumber: z.string().min(1),
-        }),
-      ]),
-      z.object({
-        firstName: z.string().min(1),
-        middleName: z.string().optional(),
-        lastName: z.string().min(1),
-      }),
-    ]),
-    sortCode: z.string().min(1),
-    bankAccountNumber: z.string().min(1),
-  }),
+  businessType: z.string().min(1),
+  registrationNumber: z.union([z.string(), z.undefined()]),
 });
 
-type TBankAccountVerificationPluginPayload = {
+type TCommercialCreditCheckPluginPayload = {
   clientId: PluginPayloadProperty;
   vendor: PluginPayloadProperty;
-  data: {
-    address: {
-      streetNumber: PluginPayloadProperty;
-      street: PluginPayloadProperty;
-      city: PluginPayloadProperty;
-      postcode: PluginPayloadProperty;
-    };
-    bankAccountDetails: {
-      sortCode: PluginPayloadProperty;
-      bankAccountNumber: PluginPayloadProperty;
-    } & (
-      | {
-          holder: {
-            firstName: PluginPayloadProperty;
-            middleName: PluginPayloadProperty<string | undefined>;
-            lastName: PluginPayloadProperty;
-          };
-        }
-      | ({ bankAccountName: PluginPayloadProperty } & (
-          | { companyRegistrationNumber: PluginPayloadProperty }
-          | { registeredCharityNumber: PluginPayloadProperty }
-        ))
-    );
-  };
+  businessType: PluginPayloadProperty;
+  registrationNumber: PluginPayloadProperty<string | undefined>;
 };
 
-const BankAccountVerificationResponseSchema = z.record(z.string(), z.unknown());
+const CommercialCreditCheckResponseSchema = z.record(z.string(), z.unknown());
 
-export class BankAccountVerificationPlugin extends ApiPlugin {
+export class CommercialCreditCheckPlugin extends ApiPlugin {
   public static pluginType = 'http';
-  public payload: TBankAccountVerificationPluginPayload;
+  public payload: TCommercialCreditCheckPluginPayload;
 
-  private pluginName = 'Bank Account Verification Plugin';
+  private pluginName = 'Commercial Credit Check Plugin';
 
   constructor({
     payload,
     ...pluginParams
-  }: IApiPluginParams & { payload: BankAccountVerificationPlugin['payload'] }) {
-    const bankAccountVerificationPluginParams = {
+  }: IApiPluginParams & { payload: CommercialCreditCheckPlugin['payload'] }) {
+    const commercialCreditCheckPluginParams = {
       ...pluginParams,
       method: 'POST' as const,
     };
 
-    super(bankAccountVerificationPluginParams);
+    super(commercialCreditCheckPluginParams);
 
     this.payload = payload;
   }
@@ -96,19 +49,28 @@ export class BankAccountVerificationPlugin extends ApiPlugin {
     const env = validateEnv(this.pluginName);
 
     try {
-      const url = `${env.UNIFIED_API_URL}/bank-account-verification`;
+      const url = `${env.UNIFIED_API_URL}/commercial-credit-check`;
 
       const payload = getPayloadPropertiesValue({
         properties: this.payload,
         context,
       });
 
-      const validatedPayload = BankAccountVerificationPluginPayloadSchema.safeParse(payload);
+      const validatedPayload = CommercialCreditCheckPluginPayloadSchema.safeParse(payload);
 
       if (!validatedPayload.success) {
         return this.returnErrorResponse(
           `${this.pluginName} - Invalid payload: ${JSON.stringify(validatedPayload.error.errors)}`,
         );
+      }
+
+      if (validatedPayload.data.businessType === 'individual') {
+        return this.successAction
+          ? this.returnSuccessResponse(this.successAction, {
+              name: this.name,
+              status: ProcessStatus.CANCELED,
+            })
+          : {};
       }
 
       logger.log(`${this.pluginName} - Sending API request`, {
@@ -144,7 +106,7 @@ export class BankAccountVerificationPlugin extends ApiPlugin {
       }
 
       const res = await apiResponse.json();
-      const responseBody = BankAccountVerificationResponseSchema.parse(res);
+      const responseBody = CommercialCreditCheckResponseSchema.parse(res);
 
       if (this.successAction) {
         return this.returnSuccessResponse(this.successAction, {
