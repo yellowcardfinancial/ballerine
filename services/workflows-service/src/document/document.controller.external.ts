@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseFilePipeBuilder,
   Patch,
@@ -23,6 +24,7 @@ import {
   CreateDocumentSchema,
   DeleteDocumentsSchema,
   UpdateDocumentSchema,
+  DocumentInputDataForTrackerSchema,
 } from './dtos/document.dto';
 import { Validate } from 'ballerine-nestjs-typebox';
 import { type Static, Type } from '@sinclair/typebox';
@@ -195,14 +197,37 @@ export class DocumentControllerExternal {
     return await this.documentService.deleteByIds(ids, [projectId]);
   }
 
-  @Get('workflow/:workflowId/definition/:definitionId')
+  @Post('tracker/:workflowRuntimeId/:workflowDefinitionId')
   @ApiForbiddenResponse()
-  @ApiOkResponse({ type: Array<DocumentTrackerModel> })
+  @HttpCode(200)
+  @ApiResponse({
+    status: 200,
+    description: 'Documents retrieved successfully',
+    schema: Type.Array(Type.Record(Type.String(), Type.Any())),
+  })
+  @Validate({
+    request: [
+      {
+        type: 'param',
+        name: 'workflowDefinitionId',
+        schema: Type.String(),
+      },
+      {
+        type: 'body',
+        schema: Type.Array(DocumentInputDataForTrackerSchema),
+      },
+    ],
+    response: Type.Any(),
+  })
   async getDocumentsByWorkflowId(
-    @Param('workflowId') workflowId: string,
-    @Param('definitionId') definitionId: string,
+    @Param('workflowDefinitionId') workflowDefinitionId: string,
+    @Body() documents: Array<Static<typeof DocumentInputDataForTrackerSchema>>,
     @CurrentProject() projectId: TProjectId,
   ) {
-    return await this.documentService.getDocumentsByWorkflowId(workflowId, projectId, definitionId);
+    return await this.documentService.getDocumentsByWorkflowId(
+      projectId,
+      workflowDefinitionId,
+      documents,
+    );
   }
 }

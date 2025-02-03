@@ -7,12 +7,12 @@ import { StorageService } from '@/storage/storage.service';
 import { FileService } from '@/providers/file/file.service';
 import { getFileMetadata } from '@/common/get-file-metadata/get-file-metadata';
 import { Static } from '@sinclair/typebox';
-import { CreateDocumentSchema } from './dtos/document.dto';
+import { CreateDocumentSchema, DocumentInputDataForTrackerSchema } from './dtos/document.dto';
 import { CreateDocumentFileSchema } from '@/document-file/dtos/document-file.dto';
 import { WorkflowService } from '@/workflow/workflow.service';
 import { UiDefinitionService } from '@/ui-definition/ui-definition.service';
-import { isObject } from '@ballerine/common';
-import { RawDocumentFieldSchema } from './types';
+import { isObject, getDocumentId, isType } from '@ballerine/common';
+import z from 'zod';
 
 @Injectable()
 export class DocumentService {
@@ -224,9 +224,9 @@ export class DocumentService {
   }
 
   async getDocumentsByWorkflowId(
-    workflowRuntimeId: string,
     projectId: TProjectId,
     workflowDefinitionId: string,
+    documents: Array<Static<typeof DocumentInputDataForTrackerSchema>>,
   ) {
     const uiDefinition = await this.uiDefinitionService.getByWorkflowDefinitionId(
       workflowDefinitionId,
@@ -234,54 +234,77 @@ export class DocumentService {
       [projectId],
     );
 
-    console.log('uiDefinition', uiDefinition);
-
     if (!isObject(uiDefinition.uiSchema)) {
       return [];
     }
 
-    const uiSchema = uiDefinition.uiSchema as { elements: any[] };
+    const uiSchema = uiDefinition.uiSchema as { elements: Array<Record<string, any>> };
 
-    const documentFields = this.findDocumentFields(uiSchema);
+    const uiDocumentFields = this.findDocumentFields(uiSchema);
 
-    return documentFields;
-
-    const workflowContext = await this.workflowService.getWorkflowRuntimeDataById(
-      workflowRuntimeId,
-      {
-        select: {
-          context: true,
+    const trackedDocuments = uiDocumentFields.map(uiElement => {
+      console.log(uiElement.params.template);
+      const uiId = getDocumentId(
+        {
+          type: uiElement.params.template.type,
+          category: uiElement.params.template.category,
+          issuer: { country: uiElement.params.template.issuer.country },
+          version: uiElement.params.template.version,
         },
-      },
-      [projectId],
-    );
+        false,
+      );
 
-    return workflowContext;
+      const inputDocument = documents.find(
+        doc =>
+          getDocumentId(
+            {
+              type: doc.type,
+              category: doc.category,
+              issuer: { country: doc.issuingCountry },
+              version: doc.version,
+            },
+            false,
+          ) === uiId,
+      );
 
-    // return documents;
+      if (!inputDocument) {
+        return {
+          type: uiElement.params.template.type,
+          category: uiElement.params.template.category,
+          issuingCountry: uiElement.params.template.issuer.country,
+          version: uiElement.params.template.version,
+          status: 'unprovided',
+          decision: null,
+        };
+      }
+
+      return {
+        ...inputDocument,
+        status: inputDocument.status ?? 'unprovided',
+        decision: inputDocument.decision ?? null,
+      };
+    });
+
+    return trackedDocuments;
   }
 
-  private findDocumentFields(node: any): Array<typeof RawDocumentFieldSchema> {
-    if (!node || typeof node !== 'object') {
-      return [];
-    }
-
-    const results: Array<typeof RawDocumentFieldSchema> = [];
-    const stack: any[] = [node];
+  private findDocumentFields(node: Record<string, any>) {
+    const results = [];
+    const stack = [node];
 
     while (stack.length) {
       const current = stack.pop();
 
       if (current?.element === 'documentfield') {
-        results.push(current as typeof RawDocumentFieldSchema);
+        results.push(current);
       }
 
-      if (Array.isArray(current?.elements)) {
-        stack.push(...current.elements);
+      if (isType(z.array(z.record(z.string(), z.any())))(current?.elements)) {
+        stack.push(...(current?.elements ?? []));
       }
 
-      if (Array.isArray(current?.children)) {
-        stack.push(...current.children);
+      if (isType(z.array(z.record(z.string(), z.any())))(current?.children)) {
+        stack.push(...(current?.children ?? []));
       }
     }
 
